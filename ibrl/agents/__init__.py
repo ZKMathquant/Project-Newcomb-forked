@@ -5,6 +5,7 @@ from .bayesian import BayesianAgent
 from .exp3 import EXP3Agent
 from .experimental1 import ExperimentalAgent1
 from .experimental2 import ExperimentalAgent2
+from .experimental3 import ExperimentalAgent3
 
 __all__ = [
     "BaseAgent",
@@ -13,5 +14,6 @@ __all__ = [
     "BayesianAgent",
     "EXP3Agent",
     "ExperimentalAgent1",
-    "ExperimentalAgent2"
+    "ExperimentalAgent2",
+    "ExperimentalAgent3"
 ]

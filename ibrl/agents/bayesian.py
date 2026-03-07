@@ -2,6 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from . import BaseGreedyAgent
+from ..utils import dump_array
 
 
 class BayesianAgent(BaseGreedyAgent):
@@ -26,3 +27,6 @@ class BayesianAgent(BaseGreedyAgent):
         super().reset()
         self.values = np.zeros(self.num_actions)
         self.precision = np.ones(self.num_actions) * 0.1
+
+    def dump_state(self):
+        return dump_array(self.values)

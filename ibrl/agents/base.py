@@ -53,3 +53,11 @@ class BaseAgent(ABC):
         self.step = 1
         self.seed += 1
         self.random = np.random.default_rng(seed = self.seed)
+
+    @abstractmethod
+    def dump_state(self) -> str:
+        """
+        Return short (<1 line) representation of the agent's state (for debugging)
+        Potentially output in more detail if self.verbose > 1
+        """
+        pass

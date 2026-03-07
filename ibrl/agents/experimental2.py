@@ -2,6 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from . import BaseGreedyAgent
+from ..utils import dump_array
 
 
 class ExperimentalAgent2(BaseGreedyAgent):
@@ -73,3 +74,6 @@ class ExperimentalAgent2(BaseGreedyAgent):
         if self.learning_rate is None:
             self.counts = np.zeros((self.num_actions,self.num_actions))
         self.q = np.zeros((self.num_actions,self.num_actions))
+
+    def dump_state(self):
+        return dump_array(self.q)

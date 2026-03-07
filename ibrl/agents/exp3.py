@@ -2,6 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from . import BaseAgent
+from ..utils import dump_array
 
 
 class EXP3Agent(BaseAgent):
@@ -41,3 +42,6 @@ class EXP3Agent(BaseAgent):
         weights = np.exp(self.log_weights - np.max(self.log_weights))
         self.probs = (1 - self.gamma) * (weights / np.sum(weights)) + (self.gamma / self.num_actions)
         self.probs /= self.probs.sum()
+
+    def dump_state(self):
+        return dump_array(self.log_weights)
