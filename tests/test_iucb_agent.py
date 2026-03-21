@@ -142,9 +142,8 @@ class TestIUCBOnBandit:
         # Regret per step should decrease over time
         regret_rate_early = regret[99] / 100
         regret_rate_late = (regret[499] - regret[99]) / 400
-        # The late regret rate should be smaller than the early rate
-        # (this is a soft check for sublinearity)
-        assert regret_rate_late < regret_rate_early * 2, \
+        # The late regret rate should be strictly smaller than the early rate
+        assert regret_rate_late < regret_rate_early, \
             f"Regret not sublinear: early rate={regret_rate_early:.3f}, late={regret_rate_late:.3f}"
 
 

@@ -42,7 +42,7 @@ class IUCBAgent(BaseAgent):
     def __init__(self, *args,
                  eta: float | None = None,
                  time_horizon: float = 10000,
-                 reward_range: tuple[float, float] = (0.0, 15.0),
+                 reward_range: tuple[float, float] | None = None,
                  **kwargs):
         super().__init__(*args, **kwargs)
         assert self.num_actions == 2, "IUCB currently only supports 2-action games"
@@ -74,9 +74,33 @@ class IUCBAgent(BaseAgent):
         super().update(probabilities, action, outcome)
 
         # Rescale reward to [-1, 1]
-        r_min, r_max = self.reward_range
-        if r_max > r_min:
-            reward_scaled = 2 * (outcome.reward - r_min) / (r_max - r_min) - 1
+        if self.reward_range is not None:
+            r_min, r_max = self.reward_range
+        else:
+            # Auto-detect from observed rewards
+            old_min, old_max = self.reward_min, self.reward_max
+            if self.reward_min is None:
+                self.reward_min = outcome.reward
+                self.reward_max = outcome.reward
+            else:
+                self.reward_min = min(self.reward_min, outcome.reward)
+                self.reward_max = max(self.reward_max, outcome.reward)
+            # If range expanded significantly, reset cycle stats since
+            # accumulated sigma_y was computed with different scaling
+            if old_min is not None:
+                old_range = max(old_max - old_min, 1e-6)
+                new_range = max(self.reward_max - self.reward_min, 1e-6)
+                if new_range > old_range * 1.5 and self.tau > 0:
+                    self.tau = 0
+                    self.sigma_y = np.zeros(DIM_Y)
+            # Pad above observed max so r_min maps to -1 even when
+            # all rewards are identical (gives a learning signal).
+            r_min = self.reward_min
+            r_max = self.reward_min + max(self.reward_max - self.reward_min, 1.0)
+
+        r_range = r_max - r_min
+        if r_range > 1e-6:
+            reward_scaled = 2 * (outcome.reward - r_min) / r_range - 1
             reward_scaled = np.clip(reward_scaled, -1.0, 1.0)
         else:
             reward_scaled = 0.0
@@ -139,6 +163,8 @@ class IUCBAgent(BaseAgent):
         self.cycle_count = 0
         self.tau = 0
         self.sigma_y = np.zeros(DIM_Y)
+        self.reward_min = None
+        self.reward_max = None
 
         # Initial optimistic hypothesis: full box [-1,1]^4
         # The optimistic theta maximizes game value, which for the full box
