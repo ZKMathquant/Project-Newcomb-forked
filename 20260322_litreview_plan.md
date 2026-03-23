@@ -118,7 +118,7 @@ Related:
 
 After the review, update `20260321_simpleIUCB.md` with:
 
-1. A new section listing the most relevant prior work, with citations
+1. A new section listing the most relevant prior work, with citations, hyperlinks,
    and brief descriptions of how each relates to our setting
 2. Updated regret bound analysis incorporating known results
 3. A recommendation: implement our simplified approach as planned,
