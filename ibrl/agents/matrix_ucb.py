@@ -37,7 +37,7 @@ class CellStats:
 
     def variance(self) -> float:
         if self.count < 2:
-            return 1.0
+            return 0.25  # maximum variance for [0, 1]
         mean = self.mean()
         return self.sum_sq / self.count - mean ** 2
 
@@ -52,7 +52,7 @@ def compute_confidence_matrix(
 
     For each cell, UCB = mean + sqrt(confidence_scale * ln(t) / n).
     Unobserved cells get UCB = 1.0 (maximum possible).
-    All values clipped to [-1, 1].
+    All values clipped to [0, 1].
     """
     P_upper = np.ones((num_actions, num_actions))
 
@@ -137,7 +137,7 @@ class MatrixUCBAgent(BaseAgent):
       of sqrt(2 * log(2T²mk) / n) (fixed-horizon). Avoids requiring
       the time horizon T as input; costs at most a log factor in the
       regret bound.
-    - Reward range: we scale to [-1, 1]; they use [0, 1]. Cosmetic.
+    - Reward range: we use [0, 1], same as O'Donoghue et al.
 
     Regret bound (O'Donoghue et al. Theorem 1):
       WorstCaseRegret <= O~(sqrt(m * k * T))
@@ -145,7 +145,7 @@ class MatrixUCBAgent(BaseAgent):
 
     Arguments:
         num_actions:      K (same for agent and predictor)
-        reward_range:     (min, max) for scaling rewards to [-1, 1]
+        reward_range:     (min, max) for scaling rewards to [0, 1]
         confidence_scale: multiplier for Hoeffding bonus (default 2.0)
     """
 
@@ -182,11 +182,11 @@ class MatrixUCBAgent(BaseAgent):
 
     def _scale_reward(self, reward: float) -> float:
         if self.reward_range is None:
-            return np.clip(reward, -1.0, 1.0)
+            return float(np.clip(reward, 0.0, 1.0))
         r_min, r_max = self.reward_range
         if r_max <= r_min:
             return 0.0
-        return float(np.clip(2 * (reward - r_min) / (r_max - r_min) - 1, -1, 1))
+        return float(np.clip((reward - r_min) / (r_max - r_min), 0, 1))
 
     def dump_state(self) -> str:
         if self.total_rounds == 0:

@@ -242,14 +242,14 @@ class TestRewardScaling:
         agent = MatrixUCBAgent(num_actions=2, seed=42)
         assert agent._scale_reward(0.5) == 0.5
         assert agent._scale_reward(2.0) == 1.0
-        assert agent._scale_reward(-2.0) == -1.0
+        assert agent._scale_reward(-2.0) == 0.0
 
     def test_reward_range_scales(self):
         agent = MatrixUCBAgent(num_actions=2, seed=42, reward_range=(0.0, 10.0))
-        # 0 -> -1, 10 -> 1, 5 -> 0
-        assert abs(agent._scale_reward(0.0) - (-1.0)) < 1e-10
+        # 0 -> 0, 10 -> 1, 5 -> 0.5
+        assert abs(agent._scale_reward(0.0) - 0.0) < 1e-10
         assert abs(agent._scale_reward(10.0) - 1.0) < 1e-10
-        assert abs(agent._scale_reward(5.0) - 0.0) < 1e-10
+        assert abs(agent._scale_reward(5.0) - 0.5) < 1e-10
 
     def test_equal_range_returns_zero(self):
         agent = MatrixUCBAgent(num_actions=2, seed=42, reward_range=(5.0, 5.0))
