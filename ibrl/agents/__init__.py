@@ -9,6 +9,7 @@ from .experimental3 import ExperimentalAgent3
 from .ucb import UCBAgent
 from .iucb import IUCBAgent
 from .matrix_ucb import MatrixUCBAgent
+from .infrabayesian import InfraBayesianAgent
 
 __all__ = [
     "BaseAgent",
@@ -22,4 +23,5 @@ __all__ = [
     "UCBAgent",
     "IUCBAgent",
     "MatrixUCBAgent",
+    "InfraBayesianAgent",
 ]

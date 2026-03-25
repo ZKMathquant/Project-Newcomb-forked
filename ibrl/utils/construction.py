@@ -1,5 +1,6 @@
 from .. import agents
 from .. import environments
+from ..infrabayesian.beliefs import BanditBelief, NewcombLikeBelief, SwitchingBelief
 
 
 def parse_argument_string(string : str) -> tuple[str, dict[str, float]]:
@@ -61,6 +62,13 @@ def construct_agent(string : str, options : dict[str,int], seed_offset : int = 0
         "ucb":           agents.UCBAgent,
         "iucb":          agents.IUCBAgent,
         "matrix-ucb":    agents.MatrixUCBAgent,
+        "infrabayesian":  agents.InfraBayesianAgent,
+    }
+
+    belief_types = {
+        "bandit":   lambda num_actions, **kw: BanditBelief(num_actions),
+        "newcomb":  lambda num_actions, **kw: NewcombLikeBelief(num_actions),
+        "switching": lambda num_actions, num_steps=100, **kw: SwitchingBelief(num_actions, int(num_steps)),
     }
 
     name, kwargs = parse_argument_string(string)
@@ -70,9 +78,22 @@ def construct_agent(string : str, options : dict[str,int], seed_offset : int = 0
     arguments = dict()
     arguments.update(options)
     arguments.update(kwargs)
-    arguments.pop("num_steps", None)  # These should not be accessible to the agent
+    num_steps = arguments.pop("num_steps", None)  # These should not be accessible to the agent
     arguments.pop("num_runs", None)
     arguments["seed"] += seed_offset
+
+    # For infrabayesian agent, construct belief from string kwarg
+    if name == "infrabayesian" and "belief" in arguments:
+        belief_name = arguments.pop("belief")
+        if isinstance(belief_name, float):
+            belief_name = str(int(belief_name))  # parse_argument_string returns floats
+        if belief_name not in belief_types:
+            raise RuntimeError("Invalid belief type: " + str(belief_name))
+        belief_kwargs = {"num_actions": arguments["num_actions"]}
+        if num_steps is not None:
+            belief_kwargs["num_steps"] = num_steps
+        arguments["belief"] = belief_types[belief_name](**belief_kwargs)
+
     return agent_types[name](**arguments)
 
 
