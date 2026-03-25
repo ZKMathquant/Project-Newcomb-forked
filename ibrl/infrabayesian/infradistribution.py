@@ -1,4 +1,6 @@
 """Infradistribution class — direct port from coin-learning.ipynb."""
+import warnings
+
 from .helpers import glue
 
 
@@ -35,8 +37,18 @@ class Infradistribution:
         for measure in self.measures:
             expect_m = measure.expected_value(glue(_reward_zero, event, reward_function))
             measure.chop(event)
-            measure.offset += expect_m - expect0
+            measure.offset = expect_m - expect0
             measure /= prob
+
+        # Warn if any a-measure became invalid after update
+        invalid = [m for m in self.measures if not m.is_valid()]
+        if invalid:
+            warnings.warn(
+                f"Update produced {len(invalid)} invalid a-measure(s) with "
+                f"normalization alpha(1) > 1. This occurs with degenerate reward "
+                f"functions (e.g. f=0) and is a theoretical limitation.",
+                stacklevel=2,
+            )
 
     def __repr__(self) -> str:
         return repr(self.measures)
