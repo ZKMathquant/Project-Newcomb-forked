@@ -61,5 +61,10 @@ class AMeasure:
             offset=self.offset / other,
         )
 
+    def is_valid(self, epsilon=1e-6):
+        """Check if this is a valid a-measure: alpha(1) <= 1."""
+        alpha_one = self.scale + self.offset  # mu(1)=1 by normalisation, so alpha(1) = scale + offset
+        return alpha_one <= 1.0 + epsilon
+
     def __repr__(self) -> str:
         return f"({self.scale:.3f}[{','.join('%.3f' % x for x in self.measure)}],{self.offset:.3f})"

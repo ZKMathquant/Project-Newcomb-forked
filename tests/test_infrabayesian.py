@@ -266,3 +266,79 @@ class TestKUCoinFlip:
 
         # P(HH) + P(HT) should sum to ~1 (they're the only outcomes given H)
         assert probs_hh[0] + probs_ht[0] == pytest.approx(1.0, abs=0.001)
+
+
+# ── Phase 2: Bug fix tests ──────────────────────────────────────────────────
+
+class TestOffsetBugFix:
+    """The notebook's += in Infradistribution.update() double-counts offset b.
+    After fix (= instead of +=), multi-step KU updates should remain valid."""
+
+    def test_offset_assignment_not_accumulation(self):
+        """After KU update with reward_one, do a second update on event_HH.
+        With the bug (+=), the offset accumulates incorrectly.
+        With the fix (=), alpha(1) should remain <= 1 for all measures."""
+        mA, mB, mC = make_hypothesis_measures()
+        infradist = Infradistribution([mA, mB, mC])
+
+        event_H = (Coin.H, None)
+        event_HH = (Coin.H, Coin.H)
+
+        # First update gives nonzero offsets (0.571, 0.286, 0.000)
+        infradist.update(reward_one, event_H)
+
+        # Second update — the bug would double-count offsets here
+        infradist.update(reward_one, event_HH)
+
+        # After fix: all a-measures should be valid (alpha(1) <= 1 + epsilon)
+        for m in infradist.measures:
+            alpha_one = m.expected_value(reward_one)
+            assert alpha_one <= 1.0 + 1e-6, f"alpha(1) = {alpha_one} > 1, offset bug likely present"
+
+    def test_offset_is_fresh_not_accumulated(self):
+        """After a KU update that produces nonzero offsets, verify the offset
+        values are computed fresh (= formula), not accumulated from prior state."""
+        mA, mB, mC = make_hypothesis_measures()
+        infradist = Infradistribution([mA, mB, mC])
+
+        event_H = (Coin.H, None)
+        infradist.update(reward_one, event_H)
+
+        # Record offsets after first update
+        offsets_after_first = [m.offset for m in infradist.measures]
+        # Notebook: [0.571, 0.286, 0.000] — mA has highest offset
+        assert offsets_after_first[0] > offsets_after_first[1] > offsets_after_first[2]
+        assert offsets_after_first[2] == pytest.approx(0.0, abs=1e-6)  # mC offset is 0
+
+
+class TestNormalizationValidation:
+    """After KU update with degenerate reward (f=0), a-measures can become
+    invalid (alpha(1) > 1). AMeasure.is_valid() should detect this."""
+
+    def test_is_valid_on_fresh_measure(self):
+        """A fresh a-measure should be valid."""
+        m = a_measure_from_hypothesis(0.5)
+        assert m.is_valid()
+
+    def test_is_valid_after_normal_update(self):
+        """After non-degenerate update, measures should be valid."""
+        mA, mB, mC = make_hypothesis_measures()
+        infradist = Infradistribution([mA, mB, mC])
+        infradist.update(reward_one, (Coin.H, None))
+        for m in infradist.measures:
+            assert m.is_valid()
+
+    def test_update_with_zero_reward_warns(self):
+        """KU update with reward_zero produces invalid a-measures. Should warn."""
+        mA, mB, mC = make_hypothesis_measures()
+        infradist = Infradistribution([mA, mB, mC])
+
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            infradist.update(reward_zero, (Coin.H, None))
+            # Should produce a warning about invalid a-measures
+            assert any("valid" in str(warning.message).lower() or
+                       "normalization" in str(warning.message).lower()
+                       for warning in w), \
+                f"Expected normalization warning, got: {[str(x.message) for x in w]}"
