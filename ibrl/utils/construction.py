@@ -111,6 +111,7 @@ def construct_environment(string : str, options : dict[str,int], seed_offset : i
 
     environment_types = {
         "bandit":              environments.BanditEnvironment,
+        "bernoulli-bandit":    environments.BernoulliBanditEnvironment,
         "switching":           environments.SwitchingAdversaryEnvironment,
         "newcomb":             environments.NewcombEnvironment,
         "damascus":            environments.DeathInDamascusEnvironment,

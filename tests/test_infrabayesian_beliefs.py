@@ -10,6 +10,7 @@ from ibrl.infrabayesian.belief_a_measure import BeliefAMeasure
 from ibrl.infrabayesian.belief_infradistribution import BeliefInfradistribution
 from ibrl.agents.infrabayesian import InfraBayesianAgent
 from ibrl.environments.bandit import BanditEnvironment
+from ibrl.environments.bernoulli_bandit import BernoulliBanditEnvironment
 from ibrl.environments.newcomb import NewcombEnvironment
 from ibrl.environments.switching import SwitchingAdversaryEnvironment
 from ibrl.simulators.simulator import simulate
@@ -224,7 +225,7 @@ class TestGaussianBeliefMatchesBayesianAgent:
 class TestSimulatorIntegration:
     def test_bandit_agent_learns(self):
         """IB agent on bandit: average reward should increase over time."""
-        env = BanditEnvironment(num_actions=3, seed=42)
+        env = BernoulliBanditEnvironment(num_actions=3, seed=42)
         agent = InfraBayesianAgent(
             num_actions=3, belief=BernoulliBelief(num_actions=3),
             epsilon=(0.5, 0.5, 0.01), seed=123,
