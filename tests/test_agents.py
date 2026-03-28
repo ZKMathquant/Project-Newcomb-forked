@@ -35,6 +35,26 @@ class TestQLearningAgent:
         assert agent.learning_rate is None
         assert hasattr(agent, 'counts')
 
+    def test_agent_rejects_invalid_num_actions(self):
+        """Agent should reject invalid num_actions"""
+        with pytest.raises(AssertionError):
+            QLearningAgent(num_actions=1, seed=42)
+
+    def test_probability_always_normalized(self, q_learning_agent):
+        """Probabilities must always sum to 1"""
+        for _ in range(10):
+            probs = q_learning_agent.get_probabilities()
+            assert np.isclose(probs.sum(), 1.0), f"Probs sum to {probs.sum()}"
+
+    def test_q_values_remain_finite(self):
+        """Q-values should never become NaN or Inf"""
+        agent = QLearningAgent(num_actions=2, seed=42)
+        agent.reset()
+        for _ in range(100):
+            probs = agent.get_probabilities()
+            agent.update(probs, 0, np.random.randn() * 100)
+        assert np.all(np.isfinite(agent.q)), "Q-values became non-finite"
+
 
 class TestBayesianAgent:
     def test_initialization(self, num_actions, seed):
@@ -57,6 +77,13 @@ class TestBayesianAgent:
         probs = bayesian_agent.get_probabilities()
         bayesian_agent.update(probs, 0, 1.0)
         assert bayesian_agent.precision[0] > initial_precision[0]
+
+    def test_values_remain_finite(self, bayesian_agent):
+        """Bayesian values should never become NaN or Inf"""
+        for _ in range(100):
+            probs = bayesian_agent.get_probabilities()
+            bayesian_agent.update(probs, 0, np.random.randn() * 100)
+        assert np.all(np.isfinite(bayesian_agent.values))
 
 
 class TestEXP3Agent:
@@ -81,3 +108,12 @@ class TestEXP3Agent:
         probs = exp3_agent.get_probabilities()
         exp3_agent.update(probs, 0, 1.0)
         assert not np.allclose(exp3_agent.log_weights, initial_weights)
+
+    def test_probabilities_always_valid(self, exp3_agent):
+        """Probabilities must always be valid"""
+        for _ in range(50):
+            probs = exp3_agent.get_probabilities()
+            assert np.isclose(probs.sum(), 1.0)
+            assert np.all(probs >= 0)
+            assert np.all(np.isfinite(probs))
+            exp3_agent.update(probs, 0, 1.0)

@@ -154,3 +154,24 @@ uv run pytest --cov=ibrl --cov-report=term-missing
 explorer.exe htmlcov\index.html
 ```
 
+
+## Tests summary:
+
+| File | Type | Tests | Purpose |
+|------|------|-------|---------|
+| conftest.py | Fixtures | - | Shared test setup |
+| test_smoke.py | Round 1 | 3 | Basic smoke tests |
+| test_agents.py | Round 2 | 18 | Unit tests + edge cases |
+| test_agents_extended.py | Round 2 | 28 | Extended agent tests |
+| test_environments.py | Round 2 | 30 | Unit tests + edge cases |
+| test_environments_extended.py | Round 2 | 18 | Extended environment tests |
+| test_simulator.py | Round 2 | 3 | Integration tests |
+| test_construction.py | Round 2 | 11 | Utility tests |
+| test_correctness_properties.py | Round 3 | 6 | Property-based tests |
+| test_correctness_convergence.py | Round 3 | 6 | Convergence tests |
+| test_correctness_adversarial.py | Round 3 | 10 | Adversarial/edge case tests |
+
+**Total: ~133 tests**
+- **Round 1+2: ~111 tests (MUST PASS in order to proceed)**
+- **Round 3: ~22 tests (SHOULD PASS - but does not block otherwise)**
+

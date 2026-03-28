@@ -13,15 +13,14 @@ class TestBaseGreedyAgent:
         agent.q = np.array([1.0, 0.0])
         probs = agent.build_epsilon_greedy_policy(agent.q)
         assert np.isclose(probs.sum(), 1.0)
-        assert probs[0] > probs[1]  # Best action has higher prob
+        assert probs[0] > probs[1]
 
     def test_epsilon_greedy_exploration(self):
         """Test epsilon-greedy with high epsilon"""
         agent = QLearningAgent(num_actions=2, epsilon=0.9, seed=42)
         agent.reset()
-        agent.q = np.array([10.0, 0.0])  # Best action is 0
+        agent.q = np.array([10.0, 0.0])
         probs = agent.build_epsilon_greedy_policy(agent.q)
-        # With high epsilon, even bad action gets explored
         assert probs[1] > 0.1
         assert np.isclose(probs.sum(), 1.0)
 
@@ -31,7 +30,6 @@ class TestBaseGreedyAgent:
         agent.reset()
         agent.q = np.array([10.0, 0.0])
         probs = agent.build_epsilon_greedy_policy(agent.q)
-        # With low epsilon, best action dominates
         assert probs[0] > 0.9
         assert np.isclose(probs.sum(), 1.0)
 
@@ -53,7 +51,6 @@ class TestBaseGreedyAgent:
         agent.temperature = 10.0
         probs_hot = agent.build_softmax_policy(agent.q)
         
-        # Cold temp = more deterministic
         assert probs_cold[0] > probs_hot[0]
         assert np.isclose(probs_cold.sum(), 1.0)
         assert np.isclose(probs_hot.sum(), 1.0)
@@ -64,7 +61,6 @@ class TestBaseGreedyAgent:
         agent.reset()
         agent.q = np.array([10.0, 0.0])
         probs = agent.build_softmax_policy(agent.q)
-        # At very high temperature, distribution is nearly uniform
         assert np.allclose(probs, [0.5, 0.5], atol=0.1)
 
     def test_exponential_decay(self, num_actions, seed):
@@ -115,7 +111,7 @@ class TestBaseGreedyAgent:
             seed=42
         )
         agent.reset()
-        agent.step = 200  # Past decay point
+        agent.step = 200
         eps = agent.parse_parameter(agent.epsilon)
         assert eps == 0.01
 
@@ -135,16 +131,14 @@ class TestQLearningAgentExtended:
         agent = QLearningAgent(num_actions=2, learning_rate=None, seed=42)
         agent.reset()
         
-        # First update
         probs = agent.get_probabilities()
         agent.update(probs, 0, 1.0)
         assert agent.counts[0] == 1
         assert np.isclose(agent.q[0], 1.0)
         
-        # Second update
         agent.update(probs, 0, 3.0)
         assert agent.counts[0] == 2
-        assert np.isclose(agent.q[0], 2.0)  # Average of 1.0 and 3.0
+        assert np.isclose(agent.q[0], 2.0)
 
     def test_sample_average_multiple_actions(self):
         """Test sample averaging across different actions"""
@@ -153,14 +147,11 @@ class TestQLearningAgentExtended:
         
         probs = agent.get_probabilities()
         
-        # Update action 0
         agent.update(probs, 0, 2.0)
         agent.update(probs, 0, 4.0)
-        
-        # Update action 1
         agent.update(probs, 1, 1.0)
         
-        assert np.isclose(agent.q[0], 3.0)  # Average of 2.0 and 4.0
+        assert np.isclose(agent.q[0], 3.0)
         assert np.isclose(agent.q[1], 1.0)
         assert agent.counts[0] == 2
         assert agent.counts[1] == 1
@@ -175,7 +166,6 @@ class TestQLearningAgentExtended:
         
         agent.update(probs, 0, 1.0)
         
-        # Q-learning update: Q += lr * (reward - Q)
         expected_q = initial_q + 0.1 * (1.0 - initial_q)
         assert np.isclose(agent.q[0], expected_q)
 
@@ -204,11 +194,9 @@ class TestBayesianAgentExtended:
         
         probs = agent.get_probabilities()
         
-        # Give consistent reward
         for _ in range(10):
             agent.update(probs, 0, 5.0)
         
-        # Value should be close to 5.0
         assert np.isclose(agent.values[0], 5.0, atol=0.5)
 
 
@@ -225,7 +213,6 @@ class TestEXP3AgentExtended:
         
         agent.update(probs, 0, 1.0)
         
-        # Weights should change after update
         assert not np.allclose(agent.log_weights, initial_weights)
 
     def test_probabilities_sum_to_one(self):
