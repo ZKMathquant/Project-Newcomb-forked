@@ -133,7 +133,9 @@ uv run pytest tests/test_smoke.py -v
 
 # Run specific test file
 uv run pytest tests/test_agents.py -v
+uv run pytest tests/test_agents_extended.py -v
 uv run pytest tests/test_environments.py -v
+uv run pytest tests/test_environments_extended.py -v
 uv run pytest tests/test_simulator.py -v
 uv run pytest tests/test_construction.py -v
 
